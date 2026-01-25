@@ -134,18 +134,24 @@ export default function ComponentName({ data, onAction }: ComponentProps) {
 
 ### Naming Conventions
 
-- **Components**: PascalCase (DataTable, FilterDrawer)
-- **Functions/Variables**: camelCase (getData, handleFilter)
-- **Constants**: camelCase (mockPipelines, savedViews)
-- **Interfaces/Types**: PascalCase (TableRow, FilterCondition)
-- **Props**: camelCase matching data shape (onViewJson, filterOpen)
+- **Components**: PascalCase (DataTable, Layout, JsonModal)
+- **Functions/Variables**: camelCase (getData, handleFilter, addCondition)
+- **Constants**: camelCase (mockPipelines, savedViews, fields, operators)
+- **Interfaces/Types**: PascalCase (TableRow, FilterCondition, SavedView)
+- **Props**: camelCase matching data shape (onViewJson, onFilterApply)
 
 ### File Organization
 
 ```
 src/
 ├── components/     # Reusable UI components
+│   ├── DataTable.tsx      # Table component with JSON viewer
+│   ├── JsonModal.tsx      # Modal for displaying JSON data
+│   ├── Layout.tsx         # Main layout with top nav + SQL query builder sidebar
+│   └── Pagination.tsx     # Pagination controls
 ├── pages/         # Route components
+│   ├── Pipelines.tsx       # Pipelines page with filter support
+│   └── Projects.tsx        # Projects page with filter support
 ├── App.tsx        # Router configuration
 ├── main.tsx       # Entry point
 └── index.css      # Global styles
@@ -186,6 +192,76 @@ src/
 - **Mock data in components** - replace with API calls when backend ready
 - **State management**: React hooks only (no Redux/Context needed yet)
 - **Routing**: React Router v7; Forms: controlled components with onChange
+- **Layout structure**: Top navigation bar + toggleable right sidebar with SQL query builder
+- **Filter architecture**: Query Builder integrated into Layout component with onFilterApply callback
+- **Query builder state**: Managed internally in Layout (activeTab, conditions, savedViews, copied)
+
+## Layout Architecture
+
+The application uses a flexible layout system with:
+
+### Top Navigation Bar
+- Logo and app branding on the left
+- Navigation links (Pipelines, Projects) as pills in the center
+- Toggle button for right sidebar (blue background, "Search" label, icon)
+- Responsive padding with space-x-6 for proper spacing
+
+### Right Sidebar (SQL Query Builder)
+- Toggleable sidebar (w-64 when open, w-0 when closed)
+- Two tabs: Builder and Library
+- **Builder Tab**: SQL-style WHERE clause builder
+  - Add/remove conditions with AND/OR logic
+  - Field dropdown: PIPELINE_ID, PROJECT_TYPE, STATUS, CREATED_AT, DURATION, EXECUTOR
+  - Operator dropdown: =, !=, >, <, >=, <=, LIKE, IN, NOT IN
+  - Value text input
+  - SQL Preview with Copy button
+  - Clear All and Apply Query buttons
+- **Library Tab**: Saved views
+  - List of named filter configurations
+  - Click to load into Builder
+  - Displays logic snippet
+
+### Layout Component Props
+```typescript
+interface LayoutProps {
+  children: React.ReactNode
+  onFilterApply?: (conditions: FilterCondition[]) => void
+}
+
+export interface FilterCondition {
+  id: string
+  field: string
+  operator: string
+  value: string
+  logic: 'AND' | 'OR'
+}
+
+export interface SavedView {
+  id: string
+  name: string
+  conditions: FilterCondition[]
+}
+```
+
+### Page Integration
+Pages (Pipelines, Projects) are wrapped in Layout component and provide `onFilterApply` callback:
+
+```typescript
+export default function Pipelines() {
+  const [filteredData, setFilteredData] = useState(mockPipelines)
+
+  const handleFilterApply = (conditions: FilterCondition[]) => {
+    // Filter logic implementation
+    setFilteredData(filtered)
+  }
+
+  return (
+    <Layout onFilterApply={handleFilterApply}>
+      {/* Page content */}
+    </Layout>
+  )
+}
+```
 
 ## Common Anti-Patterns to Avoid
 
@@ -204,4 +280,62 @@ condition ? a : (b ? c : d)  // Use helper function instead
 
 // DON'T: Hardcoded strings in multiple places
 "Pipeline Logs"  // Define as constant
+```
+
+## SQL Query Builder Implementation
+
+The Layout component includes a fully functional SQL query builder in the right sidebar:
+
+### Constants
+```typescript
+const fields = [
+  'PIPELINE_ID',
+  'PROJECT_TYPE',
+  'STATUS',
+  'CREATED_AT',
+  'DURATION',
+  'EXECUTOR'
+]
+
+const operators = ['=', '!=', '>', '<', '>=', '<=', 'LIKE', 'IN', 'NOT IN']
+```
+
+### Key Functions
+- `addCondition()`: Creates new condition with auto-generated ID
+- `removeCondition(id)`: Removes condition by ID
+- `updateCondition(id, updates)`: Updates specific condition fields
+- `clearAll()`: Resets all conditions
+- `applyQuery()`: Calls onFilterApply callback with current conditions
+- `loadView(view)`: Loads saved view conditions into builder
+- `generateSQL()`: Generates SQL query from conditions
+- `copySQL()`: Copies generated SQL to clipboard
+
+### Filter Logic in Pages
+Pages implement `handleFilterApply` to filter mock data:
+
+```typescript
+const handleFilterApply = (conditions: FilterCondition[]) => {
+  let filtered = [...mockPipelines]
+
+  conditions.forEach((condition) => {
+    filtered = filtered.filter((row) => {
+      const rowValue = String((row.data as unknown as Record<string, unknown>)[condition.field.toLowerCase()] || (row as unknown as Record<string, unknown>)[condition.field.toLowerCase()]).toLowerCase()
+      const conditionValue = condition.value.toLowerCase()
+
+      switch (condition.operator) {
+        case '=':
+          return rowValue === conditionValue
+        case '!=':
+          return rowValue !== conditionValue
+        case 'LIKE':
+          return rowValue.includes(conditionValue)
+        default:
+          return true
+      }
+    })
+  })
+
+  setFilteredData(filtered)
+  setCurrentPage(1)
+}
 ```
