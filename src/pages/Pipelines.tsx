@@ -1,213 +1,85 @@
-import { useState } from 'react'
-import DataTable, { type TableRow } from '../components/DataTable'
+import { useState, useEffect } from 'react'
+import DataTable from '../components/DataTable'
 import Pagination from '../components/Pagination'
 import JsonModal from '../components/JsonModal'
-import Layout, { type FilterCondition } from '../components/Layout'
+import Layout from '../components/Layout'
+import { getPipelines } from '../api/pipelines'
+import type { TableRow, FilterCondition, Pipeline, PipelineQuery } from '../types'
 
-const mockPipelines: TableRow[] = [
-  {
-    id: 'pipe-001',
-    name: 'Data Ingestion Pipeline',
-    status: 'success',
-    createdAt: '2024-01-24T10:30:00Z',
-    data: {
-      pipelineId: 'pipe-001',
-      projectType: 'data-ingestion',
-      status: 'success',
-      executor: 'k8s-pod',
-      duration: 245.67,
-      recordsProcessed: 1250000,
-      errorLogs: []
-    }
-  },
-  {
-    id: 'pipe-002',
-    name: 'ML Model Training',
-    status: 'running',
-    createdAt: '2024-01-24T11:15:00Z',
-    data: {
-      pipelineId: 'pipe-002',
-      projectType: 'ml-training',
-      status: 'running',
-      executor: 'gpu-pod',
-      duration: 1234.5,
-      epoch: 15,
-      accuracy: 0.9234
-    }
-  },
-  {
-    id: 'pipe-003',
-    name: 'ETL Daily Job',
-    status: 'failed',
-    createdAt: '2024-01-24T12:00:00Z',
-    data: {
-      pipelineId: 'pipe-003',
-      projectType: 'etl',
-      status: 'failed',
-      executor: 'aws-lambda',
-      duration: 45.23,
-      errorLogs: ['Connection timeout to database', 'Retry exhausted']
-    }
-  },
-  {
-    id: 'pipe-004',
-    name: 'Report Generation',
-    status: 'success',
-    createdAt: '2024-01-24T12:30:00Z',
-    data: {
-      pipelineId: 'pipe-004',
-      projectType: 'reporting',
-      status: 'success',
-      executor: 'serverless',
-      duration: 12.45,
-      reportsGenerated: 42
-    }
-  },
-  {
-    id: 'pipe-005',
-    name: 'Data Validation',
-    status: 'pending',
-    createdAt: '2024-01-24T13:00:00Z',
-    data: {
-      pipelineId: 'pipe-005',
-      projectType: 'validation',
-      status: 'pending',
-      executor: 'k8s-job',
-      duration: 0,
-      scheduledFor: '2024-01-24T14:00:00Z'
-    }
-  },
-  {
-    id: 'pipe-006',
-    name: 'Archive Cleanup',
-    status: 'success',
-    createdAt: '2024-01-24T13:30:00Z',
-    data: {
-      pipelineId: 'pipe-006',
-      projectType: 'maintenance',
-      status: 'success',
-      executor: 'cron-job',
-      duration: 8.9,
-      filesArchived: 15600
-    }
-  },
-  {
-    id: 'pipe-007',
-    name: 'API Sync',
-    status: 'failed',
-    createdAt: '2024-01-24T14:00:00Z',
-    data: {
-      pipelineId: 'pipe-007',
-      projectType: 'sync',
-      status: 'failed',
-      executor: 'aws-lambda',
-      duration: 23.1,
-      errorLogs: ['503 Service Unavailable from upstream API']
-    }
-  },
-  {
-    id: 'pipe-008',
-    name: 'Image Processing',
-    status: 'running',
-    createdAt: '2024-01-24T14:30:00Z',
-    data: {
-      pipelineId: 'pipe-008',
-      projectType: 'processing',
-      status: 'running',
-      executor: 'batch-job',
-      duration: 567.8,
-      imagesProcessed: 4500,
-      totalImages: 10000
-    }
-  },
-  {
-    id: 'pipe-009',
-    name: 'Database Backup',
-    status: 'success',
-    createdAt: '2024-01-24T15:00:00Z',
-    data: {
-      pipelineId: 'pipe-009',
-      projectType: 'backup',
-      status: 'success',
-      executor: 'cron-job',
-      duration: 45.2,
-      backupSize: '2.3 GB',
-      backupLocation: 's3://backups/2024/01/24/'
-    }
-  },
-  {
-    id: 'pipe-010',
-    name: 'Notification Service',
-    status: 'pending',
-    createdAt: '2024-01-24T15:30:00Z',
-    data: {
-      pipelineId: 'pipe-010',
-      projectType: 'notifications',
-      status: 'pending',
-      executor: 'k8s-deployment',
-      duration: 0,
-      queueSize: 1250
-    }
-  },
-  {
-    id: 'pipe-011',
-    name: 'Analytics Pipeline',
-    status: 'success',
-    createdAt: '2024-01-24T16:00:00Z',
-    data: {
-      pipelineId: 'pipe-011',
-      projectType: 'analytics',
-      status: 'success',
-      executor: 'spark-job',
-      duration: 890.5,
-      eventsProcessed: 5000000
-    }
-  },
-  {
-    id: 'pipe-012',
-    name: 'Security Scan',
-    status: 'running',
-    createdAt: '2024-01-24T16:30:00Z',
-    data: {
-      pipelineId: 'pipe-012',
-      projectType: 'security',
-      status: 'running',
-      executor: 'container-scan',
-      duration: 234.6,
-      vulnerabilitiesFound: 3
-    }
+function pipelineToTableRow(pipeline: Pipeline): TableRow {
+  return {
+    id: pipeline.id,
+    name: pipeline.name,
+    status: pipeline.status as TableRow['status'],
+    createdAt: pipeline.createdAt,
+    data: pipeline as unknown as Record<string, unknown>
   }
-]
+}
 
 export default function Pipelines() {
-  const [filteredData, setFilteredData] = useState(mockPipelines)
+  const [data, setData] = useState<TableRow[]>([])
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
   const [currentPage, setCurrentPage] = useState(1)
   const [rowsPerPage, setRowsPerPage] = useState(10)
   const [selectedRow, setSelectedRow] = useState<TableRow | null>(null)
   const [jsonModalOpen, setJsonModalOpen] = useState(false)
 
+  void loading
+  void error
+
+  const fetchData = async (query: PipelineQuery = {}) => {
+    setLoading(true)
+    setError(null)
+    try {
+      const pipelines = await getPipelines(query)
+      const tableRows = pipelines.map(pipelineToTableRow)
+      setData(tableRows)
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to fetch pipelines')
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  useEffect(() => {
+    fetchData()
+  }, [])
+
   const handleFilterApply = (conditions: FilterCondition[]) => {
-    let filtered = [...mockPipelines]
+    const query: PipelineQuery = {
+      offset: 0,
+      limit: rowsPerPage * 5
+    }
 
     conditions.forEach((condition) => {
-      filtered = filtered.filter((row) => {
-        const rowValue = String((row.data as unknown as Record<string, unknown>)[condition.field.toLowerCase()] || (row as unknown as Record<string, unknown>)[condition.field.toLowerCase()]).toLowerCase()
-        const conditionValue = condition.value.toLowerCase()
-
-        switch (condition.operator) {
-          case '=':
-            return rowValue === conditionValue
-          case '!=':
-            return rowValue !== conditionValue
-          case 'LIKE':
-            return rowValue.includes(conditionValue)
-          default:
-            return true
-        }
-      })
+      const value = condition.value.toLowerCase()
+      
+      switch (condition.field) {
+        case 'STATUS':
+          query.status = value
+          break
+        case 'PROJECT_TYPE':
+          query.projectType = value
+          break
+        case 'EXECUTOR':
+          query.executor = value
+          break
+        case 'DURATION':
+          if (condition.operator === '>') {
+            query.durationGte = Number.parseFloat(value)
+          } else if (condition.operator === '<') {
+            query.durationLte = Number.parseFloat(value)
+          } else if (condition.operator === '>=') {
+            query.durationGte = Number.parseFloat(value)
+          } else if (condition.operator === '<=') {
+            query.durationLte = Number.parseFloat(value)
+          }
+          break
+      }
     })
 
-    setFilteredData(filtered)
+    fetchData(query)
     setCurrentPage(1)
   }
 
@@ -216,7 +88,7 @@ export default function Pipelines() {
     setJsonModalOpen(true)
   }
 
-  const paginatedData = filteredData.slice(
+  const paginatedData = data.slice(
     (currentPage - 1) * rowsPerPage,
     currentPage * rowsPerPage
   )
@@ -234,7 +106,7 @@ export default function Pipelines() {
         <div className="space-y-4">
           <DataTable data={paginatedData} onViewJson={handleViewJson} />
           <Pagination
-            totalItems={filteredData.length}
+            totalItems={data.length}
             itemsPerPage={rowsPerPage}
             currentPage={currentPage}
             onPageChange={setCurrentPage}

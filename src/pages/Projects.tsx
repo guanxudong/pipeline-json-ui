@@ -1,159 +1,74 @@
-import { useState } from 'react'
-import DataTable, { type TableRow } from '../components/DataTable'
+import { useState, useEffect } from 'react'
+import DataTable from '../components/DataTable'
 import Pagination from '../components/Pagination'
 import JsonModal from '../components/JsonModal'
-import Layout, { type FilterCondition } from '../components/Layout'
+import Layout from '../components/Layout'
+import { getProjects } from '../api/projects'
+import type { TableRow, FilterCondition, Project, ProjectQuery } from '../types'
 
-const mockProjects: TableRow[] = [
-  {
-    id: 'proj-001',
-    name: 'E-Commerce Platform',
-    status: 'success',
-    createdAt: '2024-01-20T08:00:00Z',
-    data: {
-      projectId: 'proj-001',
-      projectType: 'web-app',
-      status: 'active',
-      repository: 'github.com/company/ecommerce',
-      language: 'TypeScript',
-      lastDeployed: '2024-01-24T10:00:00Z',
-      team: 'frontend'
-    }
-  },
-  {
-    id: 'proj-002',
-    name: 'Payment Service',
-    status: 'running',
-    createdAt: '2024-01-18T14:30:00Z',
-    data: {
-      projectId: 'proj-002',
-      projectType: 'microservice',
-      status: 'deploying',
-      repository: 'github.com/company/payment',
-      language: 'Go',
-      replicas: 3,
-      cpuUsage: '45%'
-    }
-  },
-  {
-    id: 'proj-003',
-    name: 'Analytics Dashboard',
-    status: 'success',
-    createdAt: '2024-01-22T11:00:00Z',
-    data: {
-      projectId: 'proj-003',
-      projectType: 'dashboard',
-      status: 'active',
-      repository: 'github.com/company/analytics',
-      language: 'Python',
-      charts: 24,
-      dataSources: 8
-    }
-  },
-  {
-    id: 'proj-004',
-    name: 'User Management API',
-    status: 'failed',
-    createdAt: '2024-01-19T09:15:00Z',
-    data: {
-      projectId: 'proj-004',
-      projectType: 'api',
-      status: 'error',
-      repository: 'github.com/company/user-api',
-      language: 'Node.js',
-      errorRate: '2.3%',
-      lastError: 'Database connection timeout'
-    }
-  },
-  {
-    id: 'proj-005',
-    name: 'Mobile App Backend',
-    status: 'pending',
-    createdAt: '2024-01-23T16:45:00Z',
-    data: {
-      projectId: 'proj-005',
-      projectType: 'mobile-backend',
-      status: 'configuring',
-      repository: 'github.com/company/mobile-api',
-      language: 'Java',
-      endpoints: 42,
-      scheduledFor: '2024-01-25T09:00:00Z'
-    }
-  },
-  {
-    id: 'proj-006',
-    name: 'Notification Service',
-    status: 'success',
-    createdAt: '2024-01-21T13:20:00Z',
-    data: {
-      projectId: 'proj-006',
-      projectType: 'microservice',
-      status: 'active',
-      repository: 'github.com/company/notifications',
-      language: 'Rust',
-      throughput: '50K msg/min'
-    }
-  },
-  {
-    id: 'proj-007',
-    name: 'Data Pipeline',
-    status: 'running',
-    createdAt: '2024-01-17T10:00:00Z',
-    data: {
-      projectId: 'proj-007',
-      projectType: 'etl',
-      status: 'processing',
-      repository: 'github.com/company/data-pipeline',
-      language: 'Scala',
-      clusterSize: '10 nodes'
-    }
-  },
-  {
-    id: 'proj-008',
-    name: 'Admin Portal',
-    status: 'success',
-    createdAt: '2024-01-22T15:30:00Z',
-    data: {
-      projectId: 'proj-008',
-      projectType: 'web-app',
-      status: 'active',
-      repository: 'github.com/company/admin',
-      language: 'React',
-      pages: 18,
-      users: 1250
-    }
+function projectToTableRow(project: Project): TableRow {
+  return {
+    id: project.id,
+    name: project.name,
+    status: project.status === 'active' || project.status === 'deploying' || project.status === 'processing' || project.status === 'configuring' ? 'running' : project.status === 'error' ? 'failed' : project.status as TableRow['status'],
+    createdAt: project.createdAt,
+    data: project as unknown as Record<string, unknown>
   }
-]
+}
 
 export default function Projects() {
-  const [filteredData, setFilteredData] = useState(mockProjects)
+  const [data, setData] = useState<TableRow[]>([])
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
   const [currentPage, setCurrentPage] = useState(1)
   const [rowsPerPage, setRowsPerPage] = useState(10)
   const [selectedRow, setSelectedRow] = useState<TableRow | null>(null)
   const [jsonModalOpen, setJsonModalOpen] = useState(false)
 
+  void loading
+  void error
+
+  const fetchData = async (query: ProjectQuery = {}) => {
+    setLoading(true)
+    setError(null)
+    try {
+      const projects = await getProjects(query)
+      const tableRows = projects.map(projectToTableRow)
+      setData(tableRows)
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to fetch projects')
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  useEffect(() => {
+    fetchData()
+  }, [])
+
   const handleFilterApply = (conditions: FilterCondition[]) => {
-    let filtered = [...mockProjects]
+    const query: ProjectQuery = {
+      offset: 0,
+      limit: rowsPerPage * 5
+    }
 
     conditions.forEach((condition) => {
-      filtered = filtered.filter((row) => {
-        const rowValue = String((row.data as unknown as Record<string, unknown>)[condition.field.toLowerCase()] || (row as unknown as Record<string, unknown>)[condition.field.toLowerCase()]).toLowerCase()
-        const conditionValue = condition.value.toLowerCase()
-
-        switch (condition.operator) {
-          case '=':
-            return rowValue === conditionValue
-          case '!=':
-            return rowValue !== conditionValue
-          case 'LIKE':
-            return rowValue.includes(conditionValue)
-          default:
-            return true
-        }
-      })
+      const value = condition.value.toLowerCase()
+      
+      switch (condition.field) {
+        case 'STATUS':
+          query.status = value
+          break
+        case 'PROJECT_TYPE':
+          query.projectType = value
+          break
+        case 'LANGUAGE':
+          query.language = value
+          break
+      }
     })
 
-    setFilteredData(filtered)
+    fetchData(query)
     setCurrentPage(1)
   }
 
@@ -162,7 +77,7 @@ export default function Projects() {
     setJsonModalOpen(true)
   }
 
-  const paginatedData = filteredData.slice(
+  const paginatedData = data.slice(
     (currentPage - 1) * rowsPerPage,
     currentPage * rowsPerPage
   )
@@ -180,7 +95,7 @@ export default function Projects() {
         <div className="space-y-4">
           <DataTable data={paginatedData} onViewJson={handleViewJson} />
           <Pagination
-            totalItems={filteredData.length}
+            totalItems={data.length}
             itemsPerPage={rowsPerPage}
             currentPage={currentPage}
             onPageChange={setCurrentPage}

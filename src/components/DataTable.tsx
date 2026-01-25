@@ -1,10 +1,4 @@
-export interface TableRow {
-  id: string
-  name: string
-  status: 'success' | 'failed' | 'running' | 'pending'
-  createdAt: string
-  data: Record<string, unknown>
-}
+import type { TableRow } from '../types'
 
 interface DataTableProps {
   data: TableRow[]

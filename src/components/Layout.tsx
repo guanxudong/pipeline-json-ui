@@ -1,19 +1,6 @@
 import { useState } from 'react'
 import { Link, useLocation } from 'react-router-dom'
-
-export interface FilterCondition {
-  id: string
-  field: string
-  operator: string
-  value: string
-  logic: 'AND' | 'OR'
-}
-
-export interface SavedView {
-  id: string
-  name: string
-  conditions: FilterCondition[]
-}
+import type { FilterCondition, SavedView } from '../types'
 
 interface LayoutProps {
   children: React.ReactNode
