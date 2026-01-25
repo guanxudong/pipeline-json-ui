@@ -1,8 +1,8 @@
 import { useState } from 'react'
 import DataTable, { type TableRow } from '../components/DataTable'
 import Pagination from '../components/Pagination'
-import FilterDrawer, { type FilterCondition, type SavedView } from '../components/FilterDrawer'
 import JsonModal from '../components/JsonModal'
+import Layout, { type FilterCondition } from '../components/Layout'
 
 const mockProjects: TableRow[] = [
   {
@@ -125,31 +125,12 @@ const mockProjects: TableRow[] = [
   }
 ]
 
-const mockSavedViews: SavedView[] = [
-  {
-    id: 'view-1',
-    name: 'Active Projects',
-    conditions: [
-      { id: '1', field: 'STATUS', operator: '=', value: 'success', logic: 'AND' }
-    ]
-  }
-]
-
-interface ProjectsProps {
-  filterOpen?: boolean
-  setFilterOpen?: (open: boolean) => void
-}
-
-export default function Projects({ filterOpen: externalFilterOpen, setFilterOpen: externalSetFilterOpen }: ProjectsProps) {
+export default function Projects() {
   const [filteredData, setFilteredData] = useState(mockProjects)
   const [currentPage, setCurrentPage] = useState(1)
   const [rowsPerPage, setRowsPerPage] = useState(10)
-  const [internalFilterOpen, setInternalFilterOpen] = useState(false)
   const [selectedRow, setSelectedRow] = useState<TableRow | null>(null)
   const [jsonModalOpen, setJsonModalOpen] = useState(false)
-
-  const filterOpen = externalFilterOpen ?? internalFilterOpen
-  const setFilterOpen = externalSetFilterOpen ?? setInternalFilterOpen
 
   const handleFilterApply = (conditions: FilterCondition[]) => {
     let filtered = [...mockProjects]
@@ -187,40 +168,35 @@ export default function Projects({ filterOpen: externalFilterOpen, setFilterOpen
   )
 
   return (
-    <div className="p-6">
-      <div className="mb-6">
-        <h1 className="text-2xl font-semibold text-gray-900">Projects</h1>
-        <p className="text-sm text-gray-600 mt-1">
-          Manage and monitor your projects
-        </p>
-      </div>
+    <Layout onFilterApply={handleFilterApply}>
+      <div className="p-6">
+        <div className="mb-6">
+          <h1 className="text-2xl font-semibold text-gray-900">Projects</h1>
+          <p className="text-sm text-gray-600 mt-1">
+            Manage and monitor your projects
+          </p>
+        </div>
 
-      <div className="space-y-4">
-        <DataTable data={paginatedData} onViewJson={handleViewJson} />
-        <Pagination
-          totalItems={filteredData.length}
-          itemsPerPage={rowsPerPage}
-          currentPage={currentPage}
-          onPageChange={setCurrentPage}
-          onRowsPerPageChange={(rows) => {
-            setRowsPerPage(rows)
-            setCurrentPage(1)
-          }}
-        />
+        <div className="space-y-4">
+          <DataTable data={paginatedData} onViewJson={handleViewJson} />
+          <Pagination
+            totalItems={filteredData.length}
+            itemsPerPage={rowsPerPage}
+            currentPage={currentPage}
+            onPageChange={setCurrentPage}
+            onRowsPerPageChange={(rows) => {
+              setRowsPerPage(rows)
+              setCurrentPage(1)
+            }}
+          />
+        </div>
       </div>
-
-      <FilterDrawer
-        isOpen={filterOpen}
-        onClose={() => setFilterOpen(false)}
-        onApply={handleFilterApply}
-        savedViews={mockSavedViews}
-      />
 
       <JsonModal
         isOpen={jsonModalOpen}
         onClose={() => setJsonModalOpen(false)}
         data={selectedRow?.data ?? {}}
       />
-    </div>
+    </Layout>
   )
 }

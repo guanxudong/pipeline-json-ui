@@ -1,8 +1,8 @@
 import { useState } from 'react'
 import DataTable, { type TableRow } from '../components/DataTable'
 import Pagination from '../components/Pagination'
-import FilterDrawer, { type FilterCondition, type SavedView } from '../components/FilterDrawer'
 import JsonModal from '../components/JsonModal'
+import Layout, { type FilterCondition } from '../components/Layout'
 
 const mockPipelines: TableRow[] = [
   {
@@ -179,39 +179,12 @@ const mockPipelines: TableRow[] = [
   }
 ]
 
-const mockSavedViews: SavedView[] = [
-  {
-    id: 'view-1',
-    name: 'Failed Pipelines',
-    conditions: [
-      { id: '1', field: 'STATUS', operator: '=', value: 'failed', logic: 'AND' }
-    ]
-  },
-  {
-    id: 'view-2',
-    name: 'Running or Pending',
-    conditions: [
-      { id: '1', field: 'STATUS', operator: '=', value: 'running', logic: 'OR' },
-      { id: '2', field: 'STATUS', operator: '=', value: 'pending', logic: 'OR' }
-    ]
-  }
-]
-
-interface PipelinesProps {
-  filterOpen?: boolean
-  setFilterOpen?: (open: boolean) => void
-}
-
-export default function Pipelines({ filterOpen: externalFilterOpen, setFilterOpen: externalSetFilterOpen }: PipelinesProps) {
+export default function Pipelines() {
   const [filteredData, setFilteredData] = useState(mockPipelines)
   const [currentPage, setCurrentPage] = useState(1)
   const [rowsPerPage, setRowsPerPage] = useState(10)
-  const [internalFilterOpen, setInternalFilterOpen] = useState(false)
   const [selectedRow, setSelectedRow] = useState<TableRow | null>(null)
   const [jsonModalOpen, setJsonModalOpen] = useState(false)
-
-  const filterOpen = externalFilterOpen ?? internalFilterOpen
-  const setFilterOpen = externalSetFilterOpen ?? setInternalFilterOpen
 
   const handleFilterApply = (conditions: FilterCondition[]) => {
     let filtered = [...mockPipelines]
@@ -249,40 +222,35 @@ export default function Pipelines({ filterOpen: externalFilterOpen, setFilterOpe
   )
 
   return (
-    <div className="p-6">
-      <div className="mb-6">
-        <h1 className="text-2xl font-semibold text-gray-900">Pipelines</h1>
-        <p className="text-sm text-gray-600 mt-1">
-          Monitor and manage your pipeline executions
-        </p>
-      </div>
+    <Layout onFilterApply={handleFilterApply}>
+      <div className="p-6">
+        <div className="mb-6">
+          <h1 className="text-2xl font-semibold text-gray-900">Pipelines</h1>
+          <p className="text-sm text-gray-600 mt-1">
+            Monitor and manage your pipeline executions
+          </p>
+        </div>
 
-      <div className="space-y-4">
-        <DataTable data={paginatedData} onViewJson={handleViewJson} />
-        <Pagination
-          totalItems={filteredData.length}
-          itemsPerPage={rowsPerPage}
-          currentPage={currentPage}
-          onPageChange={setCurrentPage}
-          onRowsPerPageChange={(rows) => {
-            setRowsPerPage(rows)
-            setCurrentPage(1)
-          }}
-        />
+        <div className="space-y-4">
+          <DataTable data={paginatedData} onViewJson={handleViewJson} />
+          <Pagination
+            totalItems={filteredData.length}
+            itemsPerPage={rowsPerPage}
+            currentPage={currentPage}
+            onPageChange={setCurrentPage}
+            onRowsPerPageChange={(rows) => {
+              setRowsPerPage(rows)
+              setCurrentPage(1)
+            }}
+          />
+        </div>
       </div>
-
-      <FilterDrawer
-        isOpen={filterOpen}
-        onClose={() => setFilterOpen(false)}
-        onApply={handleFilterApply}
-        savedViews={mockSavedViews}
-      />
 
       <JsonModal
         isOpen={jsonModalOpen}
         onClose={() => setJsonModalOpen(false)}
         data={selectedRow?.data ?? {}}
       />
-    </div>
+    </Layout>
   )
 }
