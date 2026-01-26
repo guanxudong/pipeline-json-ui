@@ -86,8 +86,8 @@ export default function Projects() {
     <Layout onFilterApply={handleFilterApply}>
       <div className="p-6">
         <div className="mb-6">
-          <h1 className="text-2xl font-semibold text-gray-900">Projects</h1>
-          <p className="text-sm text-gray-600 mt-1">
+          <h1 className="text-2xl font-bold">Projects</h1>
+          <p className="text-sm text-base-content/70 mt-1">
             Manage and monitor your projects
           </p>
         </div>

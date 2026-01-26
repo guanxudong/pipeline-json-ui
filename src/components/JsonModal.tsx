@@ -8,7 +8,6 @@ interface JsonModalProps {
 
 export default function JsonModal({ isOpen, onClose, data }: JsonModalProps) {
   const [copied, setCopied] = useState(false)
-  const [isClosing, setIsClosing] = useState(false)
 
   const syntaxHighlight = (json: Record<string, unknown> | string): string => {
     if (typeof json !== 'string') {
@@ -30,7 +29,7 @@ export default function JsonModal({ isOpen, onClose, data }: JsonModalProps) {
         } else if (/true|false/.test(match)) {
           cls = 'text-purple-600'
         } else if (/null/.test(match)) {
-          cls = 'text-gray-500'
+          cls = 'text-base-content/50'
         }
         return `<span class="${cls}">${match}</span>`
       }
@@ -48,28 +47,20 @@ export default function JsonModal({ isOpen, onClose, data }: JsonModalProps) {
   }
 
   const handleClose = () => {
-    setIsClosing(true)
-    setTimeout(() => {
-      onClose()
-      setIsClosing(false)
-    }, 300)
+    onClose()
   }
 
   if (!isOpen) return null
 
   return (
-    <>
-      <div
-        className={`fixed inset-0 z-40 bg-black/50 ${isClosing ? 'animate-fade-out' : 'animate-fade-in'}`}
-        onClick={handleClose}
-      />
-      <div className={`fixed inset-y-0 right-0 z-50 w-full max-w-2xl bg-white shadow-2xl flex flex-col ${isClosing ? 'animate-slide-out-right' : 'animate-slide-in-right'}`}>
-        <div className="flex items-center justify-between px-4 py-3 border-b border-gray-200">
-          <h3 className="text-lg font-semibold text-gray-900">Attributes</h3>
-          <div className="flex items-center space-x-2">
+    <dialog className="modal modal-open">
+      <div className="modal-box w-full max-w-2xl">
+        <div className="flex items-center justify-between mb-4">
+          <h3 className="font-bold text-lg">Attributes</h3>
+          <div className="flex items-center gap-2">
             <button
               onClick={handleCopy}
-              className="flex items-center space-x-1 px-3 py-1.5 bg-gray-100 text-gray-700 text-sm rounded hover:bg-gray-200 transition-colors"
+              className="btn btn-sm btn-ghost gap-1"
             >
               <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path
@@ -83,7 +74,7 @@ export default function JsonModal({ isOpen, onClose, data }: JsonModalProps) {
             </button>
             <button
               onClick={handleClose}
-              className="p-1.5 text-gray-500 hover:text-gray-700 hover:bg-gray-100 rounded transition-colors"
+              className="btn btn-sm btn-circle btn-ghost"
             >
               <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
@@ -92,7 +83,7 @@ export default function JsonModal({ isOpen, onClose, data }: JsonModalProps) {
           </div>
         </div>
 
-        <div className="flex-1 overflow-auto p-4">
+        <div className="overflow-auto max-h-96">
           <pre className="font-mono text-sm leading-relaxed">
             <code
               dangerouslySetInnerHTML={{
@@ -102,6 +93,9 @@ export default function JsonModal({ isOpen, onClose, data }: JsonModalProps) {
           </pre>
         </div>
       </div>
-    </>
+      <form method="dialog" className="modal-backdrop">
+        <button onClick={handleClose}>close</button>
+      </form>
+    </dialog>
   )
 }

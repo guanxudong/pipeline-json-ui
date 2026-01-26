@@ -97,8 +97,8 @@ export default function Pipelines() {
     <Layout onFilterApply={handleFilterApply}>
       <div className="p-6">
         <div className="mb-6">
-          <h1 className="text-2xl font-semibold text-gray-900">Pipelines</h1>
-          <p className="text-sm text-gray-600 mt-1">
+          <h1 className="text-2xl font-bold">Pipelines</h1>
+          <p className="text-sm text-base-content/70 mt-1">
             Monitor and manage your pipeline executions
           </p>
         </div>
