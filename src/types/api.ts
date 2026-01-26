@@ -21,6 +21,7 @@ export interface Pipeline {
   queueSize?: number
   eventsProcessed?: number
   vulnerabilitiesFound?: number
+  metadata?: Record<string, unknown>
 }
 
 export interface Project {
@@ -46,6 +47,7 @@ export interface Project {
   clusterSize?: string
   pages?: number
   users?: number
+  metadata?: Record<string, unknown>
 }
 
 export interface PipelineQuery {

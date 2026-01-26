@@ -8,6 +8,7 @@ interface JsonModalProps {
 
 export default function JsonModal({ isOpen, onClose, data }: JsonModalProps) {
   const [copied, setCopied] = useState(false)
+  const [isClosing, setIsClosing] = useState(false)
 
   const syntaxHighlight = (json: Record<string, unknown> | string): string => {
     if (typeof json !== 'string') {
@@ -19,15 +20,15 @@ export default function JsonModal({ isOpen, onClose, data }: JsonModalProps) {
     return json.replace(
       /("(\\u[a-zA-Z0-9]{4}|\\[^u]|[^\\"])*"(\s*:)?|\b(true|false|null)\b|-?\d+(?:\.\d*)?(?:[eE][+/-]?\d+)?)/g,
       (match: string) => {
-        let cls = 'text-orange-400'
+        let cls = 'text-orange-600'
         if (/^"/.test(match)) {
           if (/:$/.test(match)) {
-            cls = 'text-blue-400'
+            cls = 'text-blue-600'
           } else {
-            cls = 'text-green-400'
+            cls = 'text-green-600'
           }
         } else if (/true|false/.test(match)) {
-          cls = 'text-purple-400'
+          cls = 'text-purple-600'
         } else if (/null/.test(match)) {
           cls = 'text-gray-500'
         }
@@ -46,17 +47,29 @@ export default function JsonModal({ isOpen, onClose, data }: JsonModalProps) {
     }
   }
 
+  const handleClose = () => {
+    setIsClosing(true)
+    setTimeout(() => {
+      onClose()
+      setIsClosing(false)
+    }, 300)
+  }
+
   if (!isOpen) return null
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50 p-4">
-      <div className="bg-gray-900 rounded-lg shadow-2xl w-full max-w-4xl max-h-[80vh] flex flex-col">
-        <div className="flex items-center justify-between px-4 py-3 border-b border-gray-700">
-          <h3 className="text-lg font-semibold text-white">JSON Details</h3>
+    <>
+      <div
+        className={`fixed inset-0 z-40 bg-black/50 ${isClosing ? 'animate-fade-out' : 'animate-fade-in'}`}
+        onClick={handleClose}
+      />
+      <div className={`fixed inset-y-0 right-0 z-50 w-full max-w-2xl bg-white shadow-2xl flex flex-col ${isClosing ? 'animate-slide-out-right' : 'animate-slide-in-right'}`}>
+        <div className="flex items-center justify-between px-4 py-3 border-b border-gray-200">
+          <h3 className="text-lg font-semibold text-gray-900">Attributes</h3>
           <div className="flex items-center space-x-2">
             <button
               onClick={handleCopy}
-              className="flex items-center space-x-1 px-3 py-1.5 bg-gray-800 text-gray-300 text-sm rounded hover:bg-gray-700 transition-colors"
+              className="flex items-center space-x-1 px-3 py-1.5 bg-gray-100 text-gray-700 text-sm rounded hover:bg-gray-200 transition-colors"
             >
               <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path
@@ -69,8 +82,8 @@ export default function JsonModal({ isOpen, onClose, data }: JsonModalProps) {
               <span>{copied ? 'Copied!' : 'Copy'}</span>
             </button>
             <button
-              onClick={onClose}
-              className="p-1.5 text-gray-400 hover:text-white hover:bg-gray-800 rounded transition-colors"
+              onClick={handleClose}
+              className="p-1.5 text-gray-500 hover:text-gray-700 hover:bg-gray-100 rounded transition-colors"
             >
               <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
@@ -88,16 +101,7 @@ export default function JsonModal({ isOpen, onClose, data }: JsonModalProps) {
             />
           </pre>
         </div>
-
-        <div className="flex justify-end px-4 py-3 border-t border-gray-700">
-          <button
-            onClick={onClose}
-            className="px-4 py-2 bg-blue-600 text-white text-sm font-medium rounded hover:bg-blue-700 transition-colors"
-          >
-            Close
-          </button>
-        </div>
       </div>
-    </div>
+    </>
   )
 }

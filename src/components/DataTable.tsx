@@ -49,7 +49,7 @@ export default function DataTable({ data, onViewJson }: DataTableProps) {
               Created At
             </th>
             <th className="px-4 py-2.5 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
-              JSON
+              Attributes
             </th>
           </tr>
         </thead>
