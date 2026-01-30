@@ -1,8 +1,8 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import DataTable from '../components/DataTable'
 import Pagination from '../components/Pagination'
 import JsonModal from '../components/JsonModal'
-import Layout from '../components/Layout'
+import Layout, { ActiveFilterBar } from '../components/Layout'
 import { getPipelines } from '../api/pipelines'
 import type { TableRow, FilterCondition, Pipeline, PipelineQuery } from '../types'
 
@@ -24,11 +24,12 @@ export default function Pipelines() {
   const [rowsPerPage, setRowsPerPage] = useState(10)
   const [selectedRow, setSelectedRow] = useState<TableRow | null>(null)
   const [jsonModalOpen, setJsonModalOpen] = useState(false)
+  const [activeConditions, setActiveConditions] = useState<FilterCondition[]>([])
 
   void loading
   void error
 
-  const fetchData = async (query: PipelineQuery = {}) => {
+  const fetchData = useCallback(async (query: PipelineQuery = {}) => {
     setLoading(true)
     setError(null)
     try {
@@ -40,13 +41,13 @@ export default function Pipelines() {
     } finally {
       setLoading(false)
     }
-  }
+  }, [])
 
   useEffect(() => {
     fetchData()
-  }, [])
+  }, [fetchData])
 
-  const handleFilterApply = (conditions: FilterCondition[]) => {
+  const handleFilterApply = useCallback((conditions: FilterCondition[]) => {
     const query: PipelineQuery = {
       offset: 0,
       limit: rowsPerPage * 5
@@ -79,9 +80,15 @@ export default function Pipelines() {
       }
     })
 
+    setActiveConditions(conditions)
     fetchData(query)
     setCurrentPage(1)
-  }
+  }, [fetchData, rowsPerPage])
+
+  const handleClearFilters = useCallback(() => {
+    setActiveConditions([])
+    fetchData()
+  }, [fetchData])
 
   const handleViewJson = (row: TableRow) => {
     setSelectedRow(row)
@@ -94,7 +101,15 @@ export default function Pipelines() {
   )
 
   return (
-    <Layout onFilterApply={handleFilterApply}>
+    <Layout 
+      onFilterApply={handleFilterApply} 
+      activeConditions={activeConditions}
+      onClearFilters={handleClearFilters}
+    >
+      <ActiveFilterBar 
+        conditions={activeConditions} 
+        onClear={handleClearFilters}
+      />
       <div className="p-6">
         <div className="mb-6">
           <h1 className="text-2xl font-bold">Pipelines</h1>

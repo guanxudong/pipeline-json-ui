@@ -1,8 +1,8 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import DataTable from '../components/DataTable'
 import Pagination from '../components/Pagination'
 import JsonModal from '../components/JsonModal'
-import Layout from '../components/Layout'
+import Layout, { ActiveFilterBar } from '../components/Layout'
 import { getProjects } from '../api/projects'
 import type { TableRow, FilterCondition, Project, ProjectQuery } from '../types'
 
@@ -24,11 +24,12 @@ export default function Projects() {
   const [rowsPerPage, setRowsPerPage] = useState(10)
   const [selectedRow, setSelectedRow] = useState<TableRow | null>(null)
   const [jsonModalOpen, setJsonModalOpen] = useState(false)
+  const [activeConditions, setActiveConditions] = useState<FilterCondition[]>([])
 
   void loading
   void error
 
-  const fetchData = async (query: ProjectQuery = {}) => {
+  const fetchData = useCallback(async (query: ProjectQuery = {}) => {
     setLoading(true)
     setError(null)
     try {
@@ -40,13 +41,13 @@ export default function Projects() {
     } finally {
       setLoading(false)
     }
-  }
+  }, [])
 
   useEffect(() => {
     fetchData()
-  }, [])
+  }, [fetchData])
 
-  const handleFilterApply = (conditions: FilterCondition[]) => {
+  const handleFilterApply = useCallback((conditions: FilterCondition[]) => {
     const query: ProjectQuery = {
       offset: 0,
       limit: rowsPerPage * 5
@@ -68,9 +69,15 @@ export default function Projects() {
       }
     })
 
+    setActiveConditions(conditions)
     fetchData(query)
     setCurrentPage(1)
-  }
+  }, [fetchData, rowsPerPage])
+
+  const handleClearFilters = useCallback(() => {
+    setActiveConditions([])
+    fetchData()
+  }, [fetchData])
 
   const handleViewJson = (row: TableRow) => {
     setSelectedRow(row)
@@ -83,7 +90,15 @@ export default function Projects() {
   )
 
   return (
-    <Layout onFilterApply={handleFilterApply}>
+    <Layout 
+      onFilterApply={handleFilterApply} 
+      activeConditions={activeConditions}
+      onClearFilters={handleClearFilters}
+    >
+      <ActiveFilterBar 
+        conditions={activeConditions} 
+        onClear={handleClearFilters}
+      />
       <div className="p-6">
         <div className="mb-6">
           <h1 className="text-2xl font-bold">Projects</h1>
