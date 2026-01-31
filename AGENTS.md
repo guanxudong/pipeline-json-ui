@@ -152,6 +152,8 @@ src/
 ├── pages/         # Route components
 │   ├── Pipelines.tsx       # Pipelines page with filter support
 │   └── Projects.tsx        # Projects page with filter support
+├── mocks/         # Mock data and API responses
+│   └── savedViews.ts       # Saved filter views mock data
 ├── App.tsx        # Router configuration
 ├── main.tsx       # Entry point
 └── index.css      # Global styles
@@ -189,7 +191,7 @@ src/
 ## Key Architectural Decisions
 
 - **No external UI library** - custom components with Tailwind
-- **Mock data in components** - replace with API calls when backend ready
+- **Mock/Real API switching** - All API modules support USE_MOCK flag for seamless backend integration
 - **State management**: React hooks only (no Redux/Context needed yet)
 - **Routing**: React Router v7; Forms: controlled components with onChange
 - **Layout structure**: Top navigation bar + toggleable right sidebar with SQL query builder
@@ -220,12 +222,20 @@ The application uses a flexible layout system with:
   - List of named filter configurations
   - Click to load into Builder
   - Displays logic snippet
+  - Backend API integration for CRUD operations
+  - Loading state support with spinner
 
 ### Layout Component Props
 ```typescript
 interface LayoutProps {
   children: React.ReactNode
   onFilterApply?: (conditions: FilterCondition[]) => void
+  activeConditions?: FilterCondition[]
+  onClearFilters?: () => void
+  savedViews?: SavedView[]
+  onSaveView?: (name: string, conditions: FilterCondition[]) => void
+  onDeleteView?: (viewId: string) => void
+  isLoadingViews?: boolean
 }
 
 export interface FilterCondition {
@@ -339,3 +349,41 @@ const handleFilterApply = (conditions: FilterCondition[]) => {
   setCurrentPage(1)
 }
 ```
+
+## Data Table Component
+
+The DataTable component provides flexible column configuration:
+
+### Column Configuration
+- Configurable columns via `columns` prop
+- Available column types: 'id', 'project', 'projectType', 'timestamp', 'lastUpdate', 'status', 'attributes'
+- Default columns: ['id', 'name', 'status', 'createdAt', 'attributes']
+
+### Column Definitions
+
+| Column Type | Description | Display |
+|-------------|-------------|---------|
+| 'id' | Pipeline/Project ID | Monospace font |
+| 'project' or 'name' | Project name | Plain text |
+| 'projectType' | Runtime type | java-11, java-17, python-3.6, node-22, dotNet-18 |
+| 'timestamp' or 'createdAt' | Creation timestamp | Formatted date/time |
+| 'lastUpdate' | Last update timestamp | Formatted date/time |
+| 'status' | Status badge | Badge with colors: success (green), failed (red), running (blue), pending (gray) |
+| 'attributes' | JSON viewer button | Eye icon button that opens JSON modal |
+
+### Usage
+```typescript
+<DataTable
+  data={filteredData}
+  columns={['id', 'project', 'status', 'attributes']}
+  onViewJson={handleViewJson}
+/>
+```
+
+## Page Column Configurations
+
+### Pipelines Page
+**Columns:** ID | Project | Project Type | Timestamp | Last Update | Status | Attributes
+
+### Projects Page
+**Columns:** ID | Project | Project Type | Timestamp | Last Update | Attributes
