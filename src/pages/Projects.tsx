@@ -4,6 +4,7 @@ import Pagination from '../components/Pagination'
 import JsonModal from '../components/JsonModal'
 import Layout, { ActiveFilterBar } from '../components/Layout'
 import { getProjects } from '../api/projects'
+import { getSavedViews, createSavedView, deleteSavedView, type SavedViewResponse } from '../api/savedViews'
 import type { TableRow, FilterCondition, Project, ProjectQuery } from '../types'
 
 function projectToTableRow(project: Project): TableRow {
@@ -25,6 +26,8 @@ export default function Projects() {
   const [selectedRow, setSelectedRow] = useState<TableRow | null>(null)
   const [jsonModalOpen, setJsonModalOpen] = useState(false)
   const [activeConditions, setActiveConditions] = useState<FilterCondition[]>([])
+  const [savedViews, setSavedViews] = useState<SavedViewResponse[]>([])
+  const [isLoadingViews, setIsLoadingViews] = useState(false)
 
   void loading
   void error
@@ -46,6 +49,40 @@ export default function Projects() {
   useEffect(() => {
     fetchData()
   }, [fetchData])
+
+  useEffect(() => {
+    const fetchSavedViews = async () => {
+      setIsLoadingViews(true)
+      try {
+        const views = await getSavedViews()
+        setSavedViews(views)
+      } catch (err) {
+        console.error('Failed to fetch saved views:', err)
+      } finally {
+        setIsLoadingViews(false)
+      }
+    }
+
+    fetchSavedViews()
+  }, [])
+
+  const handleSaveView = useCallback(async (name: string, conditions: FilterCondition[]) => {
+    try {
+      const newView = await createSavedView(name, conditions)
+      setSavedViews(prev => [...prev, newView])
+    } catch (err) {
+      console.error('Failed to save view:', err)
+    }
+  }, [])
+
+  const handleDeleteView = useCallback(async (viewId: string) => {
+    try {
+      await deleteSavedView(viewId)
+      setSavedViews(prev => prev.filter(v => v.id !== viewId))
+    } catch (err) {
+      console.error('Failed to delete view:', err)
+    }
+  }, [])
 
   const handleFilterApply = useCallback((conditions: FilterCondition[]) => {
     const query: ProjectQuery = {
@@ -94,6 +131,10 @@ export default function Projects() {
       onFilterApply={handleFilterApply} 
       activeConditions={activeConditions}
       onClearFilters={handleClearFilters}
+      savedViews={savedViews}
+      onSaveView={handleSaveView}
+      onDeleteView={handleDeleteView}
+      isLoadingViews={isLoadingViews}
     >
       <ActiveFilterBar 
         conditions={activeConditions} 
@@ -108,7 +149,11 @@ export default function Projects() {
         </div>
 
         <div className="space-y-4">
-          <DataTable data={paginatedData} onViewJson={handleViewJson} />
+          <DataTable 
+            data={paginatedData} 
+            onViewJson={handleViewJson}
+            columns={['id', 'project', 'projectType', 'timestamp', 'lastUpdate', 'attributes']}
+          />
           <Pagination
             totalItems={data.length}
             itemsPerPage={rowsPerPage}

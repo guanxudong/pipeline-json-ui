@@ -7,6 +7,10 @@ interface LayoutProps {
   onFilterApply?: (conditions: FilterCondition[]) => void
   activeConditions?: FilterCondition[]
   onClearFilters?: () => void
+  savedViews?: SavedView[]
+  onSaveView?: (name: string, conditions: FilterCondition[]) => void
+  onDeleteView?: (viewId: string) => void
+  isLoadingViews?: boolean
 }
 
 const fields = [
@@ -49,7 +53,11 @@ export default function Layout({
   children, 
   onFilterApply, 
   activeConditions = [],
-  onClearFilters 
+  onClearFilters,
+  savedViews = [],
+  onSaveView,
+  onDeleteView,
+  isLoadingViews = false
 }: LayoutProps) {
   const [rightSidebarOpen, setRightSidebarOpen] = useState(true)
   const [sidebarWidth, setSidebarWidth] = useState(DEFAULT_SIDEBAR_WIDTH)
@@ -60,23 +68,6 @@ export default function Layout({
   const [sqlExpanded, setSqlExpanded] = useState(true)
   const [saveModalOpen, setSaveModalOpen] = useState(false)
   const [viewName, setViewName] = useState('')
-  const [savedViews, setSavedViews] = useState<SavedView[]>([
-    {
-      id: 'view-1',
-      name: 'Failed Pipelines',
-      conditions: [
-        { id: '1', field: 'STATUS', operator: '=', value: 'failed', logic: 'AND' }
-      ]
-    },
-    {
-      id: 'view-2',
-      name: 'Running or Pending',
-      conditions: [
-        { id: '1', field: 'STATUS', operator: '=', value: 'running', logic: 'OR' },
-        { id: '2', field: 'STATUS', operator: '=', value: 'pending', logic: 'OR' }
-      ]
-    }
-  ])
   const location = useLocation()
   const conditionsRef = useRef(conditions)
   const sidebarRef = useRef<HTMLDivElement>(null)
@@ -200,19 +191,14 @@ export default function Layout({
 
   const deleteView = (e: React.MouseEvent, viewId: string) => {
     e.stopPropagation()
-    setSavedViews(savedViews.filter(v => v.id !== viewId))
+    onDeleteView?.(viewId)
   }
 
   const saveView = () => {
     if (!viewName.trim() || conditions.length === 0) return
     
-    const newView: SavedView = {
-      id: `view-${generateId()}`,
-      name: viewName.trim(),
-      conditions: conditions.map(c => ({ ...c, id: generateId() }))
-    }
-    
-    setSavedViews([...savedViews, newView])
+    const conditionsToSave = conditions.map(c => ({ ...c, id: generateId() }))
+    onSaveView?.(viewName.trim(), conditionsToSave)
     setViewName('')
     setSaveModalOpen(false)
     setActiveTab('library')
@@ -482,7 +468,11 @@ export default function Layout({
             </div>
           ) : (
             <div className="p-3 space-y-2">
-              {savedViews.length === 0 ? (
+              {isLoadingViews ? (
+                <div className="flex items-center justify-center py-6">
+                  <div className="loading loading-spinner loading-sm"></div>
+                </div>
+              ) : savedViews.length === 0 ? (
                 <div className="text-center py-6 text-base-content/50 text-xs">
                   No saved views yet.
                 </div>

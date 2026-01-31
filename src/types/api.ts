@@ -6,6 +6,7 @@ export interface Pipeline {
   status: string
   executor: string
   createdAt: string
+  lastUpdate: string
   duration: number
   recordsProcessed?: number
   epoch?: number
@@ -33,6 +34,7 @@ export interface Project {
   repository: string
   language: string
   createdAt: string
+  lastUpdate: string
   lastDeployed?: string
   team?: string
   replicas?: number

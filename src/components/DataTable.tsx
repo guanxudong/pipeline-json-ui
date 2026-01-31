@@ -1,11 +1,16 @@
 import type { TableRow } from '../types'
 
+type ColumnType = 'id' | 'name' | 'project' | 'projectType' | 'status' | 'timestamp' | 'lastUpdate' | 'createdAt' | 'attributes'
+
 interface DataTableProps {
   data: TableRow[]
   onViewJson?: (row: TableRow) => void
+  columns?: ColumnType[]
 }
 
-export default function DataTable({ data, onViewJson }: DataTableProps) {
+const DEFAULT_COLUMNS: ColumnType[] = ['id', 'name', 'status', 'createdAt', 'attributes']
+
+export default function DataTable({ data, onViewJson, columns = DEFAULT_COLUMNS }: DataTableProps) {
   const getStatusBadge = (status: TableRow['status']) => {
     switch (status) {
       case 'success':
@@ -31,45 +36,83 @@ export default function DataTable({ data, onViewJson }: DataTableProps) {
     })
   }
 
+  const getColumnHeader = (column: ColumnType): string => {
+    switch (column) {
+      case 'id': return 'ID'
+      case 'name': return 'Name'
+      case 'project': return 'Project'
+      case 'projectType': return 'Project Type'
+      case 'status': return 'Status'
+      case 'timestamp': return 'Timestamp'
+      case 'lastUpdate': return 'Last Update'
+      case 'createdAt': return 'Created At'
+      case 'attributes': return 'Attributes'
+      default: return column
+    }
+  }
+
+  const renderCell = (row: TableRow, column: ColumnType) => {
+    switch (column) {
+      case 'id':
+        return <td className="text-sm font-mono">{row.id}</td>
+      case 'name':
+      case 'project':
+        return <td className="text-sm">{row.name}</td>
+      case 'projectType':
+        return <td className="text-sm">{(row.data.projectType as string) || '-'}</td>
+      case 'status':
+        return (
+          <td>
+            <span className={`badge ${getStatusBadge(row.status)} badge-sm`}>
+              {row.status.charAt(0).toUpperCase() + row.status.slice(1)}
+            </span>
+          </td>
+        )
+      case 'timestamp':
+      case 'createdAt':
+        return <td className="text-sm text-base-content/70">{formatDate(row.createdAt)}</td>
+      case 'lastUpdate':
+        return <td className="text-sm text-base-content/70">{formatDate((row.data.lastUpdate as string) || row.createdAt)}</td>
+      case 'attributes':
+        return (
+          <td>
+            <button
+              onClick={() => onViewJson?.(row)}
+              className="btn btn-ghost btn-sm btn-square"
+              title="View JSON"
+            >
+              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4"
+                />
+              </svg>
+            </button>
+          </td>
+        )
+      default:
+        return <td>-</td>
+    }
+  }
+
   return (
     <div className="overflow-x-auto border border-base-300 rounded-lg">
       <table className="table">
         <thead>
           <tr>
-            <th className="text-xs font-semibold uppercase">ID</th>
-            <th className="text-xs font-semibold uppercase">Name</th>
-            <th className="text-xs font-semibold uppercase">Status</th>
-            <th className="text-xs font-semibold uppercase">Created At</th>
-            <th className="text-xs font-semibold uppercase">Attributes</th>
+            {columns.map((column) => (
+              <th key={column} className="text-xs font-semibold uppercase">
+                {getColumnHeader(column)}
+              </th>
+            ))}
           </tr>
         </thead>
         <tbody>
           {data.map((row) => (
             <tr key={row.id} className="hover">
-              <td className="text-sm font-mono">{row.id}</td>
-              <td className="text-sm">{row.name}</td>
-              <td>
-                <span className={`badge ${getStatusBadge(row.status)} badge-sm`}>
-                  {row.status.charAt(0).toUpperCase() + row.status.slice(1)}
-                </span>
-              </td>
-              <td className="text-sm text-base-content/70">{formatDate(row.createdAt)}</td>
-              <td>
-                <button
-                  onClick={() => onViewJson?.(row)}
-                  className="btn btn-ghost btn-sm btn-square"
-                  title="View JSON"
-                >
-                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth={2}
-                      d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4"
-                    />
-                  </svg>
-                </button>
-              </td>
+              {columns.map((column) => renderCell(row, column))}
             </tr>
           ))}
         </tbody>
