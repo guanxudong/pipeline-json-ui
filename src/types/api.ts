@@ -49,6 +49,21 @@ export interface Project {
   clusterSize?: string
   pages?: number
   users?: number
+  indexSize?: string
+  queryLatency?: string
+  processingRate?: string
+  activeUsers?: number
+  messagesPerDay?: string
+  syncErrors?: number
+  modelVersion?: string
+  trainingProgress?: string
+  subscriberCount?: number
+  concurrentStreams?: number
+  transactionsPerSecond?: number
+  activeEditors?: number
+  connectedDevices?: number
+  requestsPerSecond?: number
+  logsPerDay?: string
   metadata?: Record<string, unknown>
 }
 

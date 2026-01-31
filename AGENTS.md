@@ -145,15 +145,18 @@ export default function ComponentName({ data, onAction }: ComponentProps) {
 ```
 src/
 ├── components/     # Reusable UI components
-│   ├── DataTable.tsx      # Table component with JSON viewer
-│   ├── JsonModal.tsx      # Modal for displaying JSON data
-│   ├── Layout.tsx         # Main layout with top nav + SQL query builder sidebar
-│   └── Pagination.tsx     # Pagination controls
+│   ├── DataTable.tsx           # Table component with JSON viewer
+│   ├── JsonModal.tsx           # Modal for displaying JSON data
+│   ├── Layout.tsx              # Main layout with top nav
+│   ├── Pagination.tsx          # Pagination controls
+│   └── QueryBuilderSidebar.tsx # SQL query builder sidebar with Builder/Library tabs
 ├── pages/         # Route components
-│   ├── Pipelines.tsx       # Pipelines page with filter support
-│   └── Projects.tsx        # Projects page with filter support
+│   ├── Pipelines.tsx           # Pipelines page with filter support
+│   └── Projects.tsx            # Projects page with filter support
 ├── mocks/         # Mock data and API responses
-│   └── savedViews.ts       # Saved filter views mock data
+│   ├── pipelines.ts            # Pipeline mock data (20+ records)
+│   ├── projects.ts             # Projects mock data (20+ records)
+│   └── savedViews.ts           # Saved filter views mock data
 ├── App.tsx        # Router configuration
 ├── main.tsx       # Entry point
 └── index.css      # Global styles
@@ -195,8 +198,8 @@ src/
 - **State management**: React hooks only (no Redux/Context needed yet)
 - **Routing**: React Router v7; Forms: controlled components with onChange
 - **Layout structure**: Top navigation bar + toggleable right sidebar with SQL query builder
-- **Filter architecture**: Query Builder integrated into Layout component with onFilterApply callback
-- **Query builder state**: Managed internally in Layout (activeTab, conditions, savedViews, copied)
+- **Filter architecture**: Query Builder as separate QueryBuilderSidebar component with onFilterApply callback
+- **Query builder state**: Managed internally in QueryBuilderSidebar (activeTab, conditions, savedViews)
 
 ## Layout Architecture
 
@@ -209,7 +212,8 @@ The application uses a flexible layout system with:
 - Responsive padding with space-x-6 for proper spacing
 
 ### Right Sidebar (SQL Query Builder)
-- Toggleable sidebar (w-64 when open, w-0 when closed)
+
+- Toggleable sidebar (resizable, min 240px, max 600px)
 - Two tabs: Builder and Library
 - **Builder Tab**: SQL-style WHERE clause builder
   - Add/remove conditions with AND/OR logic
@@ -217,13 +221,17 @@ The application uses a flexible layout system with:
   - Operator dropdown: =, !=, >, <, >=, <=, LIKE, IN, NOT IN
   - Value text input
   - SQL Preview with Copy button
+  - Quick-start templates for common queries
+  - Save views to Library
   - Clear All and Apply Query buttons
 - **Library Tab**: Saved views
   - List of named filter configurations
   - Click to load into Builder
-  - Displays logic snippet
+  - Displays condition preview (truncated if long)
+  - **Tooltip on hover**: Shows full query conditions for truncated text
   - Backend API integration for CRUD operations
   - Loading state support with spinner
+  - Resize-aware: Tooltip only shows when text is actually truncated
 
 ### Layout Component Props
 ```typescript

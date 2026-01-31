@@ -6,9 +6,10 @@ A modern React application for monitoring and managing pipeline executions and p
 
 - **Pipelines Dashboard** - Monitor data pipelines, ETL jobs, ML training runs, and more
 - **Projects Dashboard** - Track application deployments, services, and infrastructure
-- **SQL Query Builder** - Advanced filtering with a sidebar query builder featuring:
+- **SQL Query Builder** - Advanced filtering with a resizable sidebar query builder featuring:
   - Builder tab: Create WHERE conditions with field, operator, and value
   - Library tab: Save and load frequently used filter views (via API)
+  - Smart tooltips: Hover over saved views to see full query conditions
 - **JSON Viewer** - Click attributes button to view detailed JSON data
 - **Real-time Status** - Visual status badges for success, failed, running, pending
 

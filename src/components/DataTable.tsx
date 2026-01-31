@@ -1,6 +1,7 @@
+import { memo } from 'react'
 import type { TableRow } from '../types'
 
-type ColumnType = 'id' | 'name' | 'project' | 'projectType' | 'status' | 'timestamp' | 'lastUpdate' | 'createdAt' | 'attributes'
+export type ColumnType = 'id' | 'name' | 'project' | 'projectType' | 'status' | 'timestamp' | 'lastUpdate' | 'createdAt' | 'attributes'
 
 interface DataTableProps {
   data: TableRow[]
@@ -10,7 +11,7 @@ interface DataTableProps {
 
 const DEFAULT_COLUMNS: ColumnType[] = ['id', 'name', 'status', 'createdAt', 'attributes']
 
-export default function DataTable({ data, onViewJson, columns = DEFAULT_COLUMNS }: DataTableProps) {
+function DataTable({ data, onViewJson, columns = DEFAULT_COLUMNS }: DataTableProps) {
   const getStatusBadge = (status: TableRow['status']) => {
     switch (status) {
       case 'success':
@@ -120,3 +121,5 @@ export default function DataTable({ data, onViewJson, columns = DEFAULT_COLUMNS 
     </div>
   )
 }
+
+export default memo(DataTable)

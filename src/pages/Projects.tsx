@@ -6,6 +6,9 @@ import Layout, { ActiveFilterBar } from '../components/Layout'
 import { getProjects } from '../api/projects'
 import { getSavedViews, createSavedView, deleteSavedView, type SavedViewResponse } from '../api/savedViews'
 import type { TableRow, FilterCondition, Project, ProjectQuery } from '../types'
+import type { ColumnType } from '../components/DataTable'
+
+const PROJECT_COLUMNS: ColumnType[] = ['id', 'project', 'projectType', 'timestamp', 'lastUpdate', 'attributes']
 
 function projectToTableRow(project: Project): TableRow {
   return {
@@ -116,10 +119,15 @@ export default function Projects() {
     fetchData()
   }, [fetchData])
 
-  const handleViewJson = (row: TableRow) => {
+  const handleViewJson = useCallback((row: TableRow) => {
     setSelectedRow(row)
     setJsonModalOpen(true)
-  }
+  }, [])
+
+  const handleRowsPerPageChange = useCallback((rows: number) => {
+    setRowsPerPage(rows)
+    setCurrentPage(1)
+  }, [])
 
   const paginatedData = data.slice(
     (currentPage - 1) * rowsPerPage,
@@ -141,28 +149,18 @@ export default function Projects() {
         onClear={handleClearFilters}
       />
       <div className="p-6">
-        <div className="mb-6">
-          <h1 className="text-2xl font-bold">Projects</h1>
-          <p className="text-sm text-base-content/70 mt-1">
-            Manage and monitor your projects
-          </p>
-        </div>
-
         <div className="space-y-4">
           <DataTable 
             data={paginatedData} 
             onViewJson={handleViewJson}
-            columns={['id', 'project', 'projectType', 'timestamp', 'lastUpdate', 'attributes']}
+            columns={PROJECT_COLUMNS}
           />
           <Pagination
             totalItems={data.length}
             itemsPerPage={rowsPerPage}
             currentPage={currentPage}
             onPageChange={setCurrentPage}
-            onRowsPerPageChange={(rows) => {
-              setRowsPerPage(rows)
-              setCurrentPage(1)
-            }}
+            onRowsPerPageChange={handleRowsPerPageChange}
           />
         </div>
       </div>

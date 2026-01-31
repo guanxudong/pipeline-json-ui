@@ -6,6 +6,9 @@ import Layout, { ActiveFilterBar } from '../components/Layout'
 import { getPipelines } from '../api/pipelines'
 import { getSavedViews, createSavedView, deleteSavedView, type SavedViewResponse } from '../api/savedViews'
 import type { TableRow, FilterCondition, Pipeline, PipelineQuery } from '../types'
+import type { ColumnType } from '../components/DataTable'
+
+const PIPELINE_COLUMNS: ColumnType[] = ['id', 'project', 'projectType', 'timestamp', 'lastUpdate', 'status', 'attributes']
 
 function pipelineToTableRow(pipeline: Pipeline): TableRow {
   return {
@@ -127,10 +130,15 @@ export default function Pipelines() {
     fetchData()
   }, [fetchData])
 
-  const handleViewJson = (row: TableRow) => {
+  const handleViewJson = useCallback((row: TableRow) => {
     setSelectedRow(row)
     setJsonModalOpen(true)
-  }
+  }, [])
+
+  const handleRowsPerPageChange = useCallback((rows: number) => {
+    setRowsPerPage(rows)
+    setCurrentPage(1)
+  }, [])
 
   const paginatedData = data.slice(
     (currentPage - 1) * rowsPerPage,
@@ -152,28 +160,18 @@ export default function Pipelines() {
         onClear={handleClearFilters}
       />
       <div className="p-6">
-        <div className="mb-6">
-          <h1 className="text-2xl font-bold">Pipelines</h1>
-          <p className="text-sm text-base-content/70 mt-1">
-            Monitor and manage your pipeline executions
-          </p>
-        </div>
-
         <div className="space-y-4">
           <DataTable 
             data={paginatedData} 
             onViewJson={handleViewJson}
-            columns={['id', 'project', 'projectType', 'timestamp', 'lastUpdate', 'status', 'attributes']}
+            columns={PIPELINE_COLUMNS}
           />
           <Pagination
             totalItems={data.length}
             itemsPerPage={rowsPerPage}
             currentPage={currentPage}
             onPageChange={setCurrentPage}
-            onRowsPerPageChange={(rows) => {
-              setRowsPerPage(rows)
-              setCurrentPage(1)
-            }}
+            onRowsPerPageChange={handleRowsPerPageChange}
           />
         </div>
       </div>
