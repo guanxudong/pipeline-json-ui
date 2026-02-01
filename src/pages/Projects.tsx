@@ -142,7 +142,6 @@ export default function Projects() {
       onSaveView={handleSaveView}
       onDeleteView={handleDeleteView}
       isLoadingViews={isLoadingViews}
-      onLibraryTabOpen={fetchSavedViews}
     >
       <ActiveFilterBar 
         conditions={activeConditions} 

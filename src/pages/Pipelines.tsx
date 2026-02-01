@@ -153,7 +153,6 @@ export default function Pipelines() {
       onSaveView={handleSaveView}
       onDeleteView={handleDeleteView}
       isLoadingViews={isLoadingViews}
-      onLibraryTabOpen={fetchSavedViews}
     >
       <ActiveFilterBar 
         conditions={activeConditions} 

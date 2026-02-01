@@ -11,7 +11,6 @@ interface QueryBuilderSidebarProps {
   isLoadingViews?: boolean
   onWidthChange?: (width: number) => void
   onResizing?: (isResizing: boolean) => void
-  onLibraryTabOpen?: () => void
 }
 
 const fields = [
@@ -50,14 +49,14 @@ const MIN_SIDEBAR_WIDTH = 240
 const MAX_SIDEBAR_WIDTH = 600
 const DEFAULT_SIDEBAR_WIDTH = 256
 
-// Component for individual saved view item with truncation detection
 interface SavedViewItemProps {
   view: SavedView
   onLoad: () => void
   onDelete: (e: React.MouseEvent) => void
+  sidebarWidth: number
 }
 
-function SavedViewItem({ view, onLoad, onDelete }: SavedViewItemProps) {
+function SavedViewItem({ view, onLoad, onDelete, sidebarWidth }: SavedViewItemProps) {
   const textRef = useRef<HTMLDivElement>(null)
   const [isTruncated, setIsTruncated] = useState(false)
 
@@ -67,18 +66,16 @@ function SavedViewItem({ view, onLoad, onDelete }: SavedViewItemProps) {
         setIsTruncated(textRef.current.scrollWidth > textRef.current.clientWidth)
       }
     }
-    
-    // Check immediately
+
     checkTruncation()
-    
-    // Use ResizeObserver to detect element size changes (e.g., when sidebar resizes)
+
     const observer = new ResizeObserver(checkTruncation)
     if (textRef.current) {
       observer.observe(textRef.current)
     }
-    
+
     return () => observer.disconnect()
-  }, [view.conditions])
+  }, [view.conditions, sidebarWidth])
 
   return (
     <div className="group relative">
@@ -92,15 +89,12 @@ function SavedViewItem({ view, onLoad, onDelete }: SavedViewItemProps) {
             <div ref={textRef} className="text-xs text-base-content/50 font-mono truncate">
               {view.conditions.map((c) => `${c.field} ${c.operator} '${c.value}'`).join(` ${view.conditions[0]?.logic || 'AND'} `)}
             </div>
-            {/* Tooltip - only show if truncated */}
             {isTruncated && (
-              <div className="absolute left-0 bottom-full mb-2 hidden group-hover:block z-50 w-72">
+              <div className="absolute left-0 top-full mt-2 hidden group-hover:block z-50 w-72">
                 <div className="bg-base-300 text-base-content text-xs p-3 rounded-lg shadow-xl border border-base-200">
-                  <div className="font-semibold mb-2 text-base-content/80">Query Conditions</div>
                   <div className="font-mono whitespace-pre-wrap break-all leading-relaxed">
                     {view.conditions.map((c, idx) => (
                       <div key={idx} className="mb-1">
-                        {idx === 0 && <span className="text-primary">WHERE </span>}
                         {idx > 0 && (
                           <span className="text-primary mx-1">{c.logic} </span>
                         )}
@@ -108,11 +102,7 @@ function SavedViewItem({ view, onLoad, onDelete }: SavedViewItemProps) {
                       </div>
                     ))}
                   </div>
-                  <div className="mt-2 pt-2 border-t border-base-200 text-base-content/50 text-[10px]">
-                    Click to load in Builder
-                  </div>
-                  {/* Tooltip arrow */}
-                  <div className="absolute left-4 bottom-0 translate-y-full w-0 h-0 border-l-4 border-r-4 border-t-4 border-l-transparent border-r-transparent border-t-base-300"></div>
+                  <div className="absolute left-4 top-0 -translate-y-full w-0 h-0 border-l-4 border-r-4 border-b-4 border-l-transparent border-r-transparent border-b-base-300"></div>
                 </div>
               </div>
             )}
@@ -141,8 +131,7 @@ export default function QueryBuilderSidebar({
   onDeleteView,
   isLoadingViews = false,
   onWidthChange,
-  onResizing,
-  onLibraryTabOpen
+  onResizing
 }: QueryBuilderSidebarProps) {
   const [sidebarWidth, setSidebarWidth] = useState(DEFAULT_SIDEBAR_WIDTH)
   const [isResizing, setIsResizing] = useState(false)
@@ -159,12 +148,6 @@ export default function QueryBuilderSidebar({
   useEffect(() => {
     conditionsRef.current = conditions
   }, [conditions])
-
-  useEffect(() => {
-    if (activeTab === 'library') {
-      onLibraryTabOpen?.()
-    }
-  }, [activeTab, onLibraryTabOpen])
 
   const hasEmptyValues = conditions.some(c => !c.value.trim())
 
@@ -476,7 +459,7 @@ export default function QueryBuilderSidebar({
                 No saved views yet.
               </div>
             ) : (
-              savedViews.map((view) => <SavedViewItem key={view.id} view={view} onLoad={() => loadView(view)} onDelete={(e) => deleteView(e, view.id)} />)
+              savedViews.map((view) => <SavedViewItem key={view.id} view={view} onLoad={() => loadView(view)} onDelete={(e) => deleteView(e, view.id)} sidebarWidth={sidebarWidth} />)
             )}
           </div>
         )}
