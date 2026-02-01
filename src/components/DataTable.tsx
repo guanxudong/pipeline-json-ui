@@ -7,11 +7,12 @@ interface DataTableProps {
   data: TableRow[]
   onViewJson?: (row: TableRow) => void
   columns?: ColumnType[]
+  loading?: boolean
 }
 
 const DEFAULT_COLUMNS: ColumnType[] = ['id', 'name', 'status', 'createdAt', 'attributes']
 
-function DataTable({ data, onViewJson, columns = DEFAULT_COLUMNS }: DataTableProps) {
+function DataTable({ data, onViewJson, columns = DEFAULT_COLUMNS, loading = false }: DataTableProps) {
   const getStatusBadge = (status: TableRow['status']) => {
     switch (status) {
       case 'success':
@@ -111,7 +112,16 @@ function DataTable({ data, onViewJson, columns = DEFAULT_COLUMNS }: DataTablePro
           </tr>
         </thead>
         <tbody>
-          {data.map((row) => (
+          {loading ? (
+            <tr>
+              <td colSpan={columns.length} className="text-center py-12">
+                <div className="flex flex-col items-center gap-2">
+                  <div className="loading loading-spinner loading-md"></div>
+                  <span className="text-sm text-base-content/50">Loading...</span>
+                </div>
+              </td>
+            </tr>
+          ) : data.map((row) => (
             <tr key={row.id} className="hover">
               {columns.map((column) => renderCell(row, column))}
             </tr>

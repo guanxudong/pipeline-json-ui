@@ -11,6 +11,7 @@ interface QueryBuilderSidebarProps {
   isLoadingViews?: boolean
   onWidthChange?: (width: number) => void
   onResizing?: (isResizing: boolean) => void
+  onLibraryTabOpen?: () => void
 }
 
 const fields = [
@@ -140,7 +141,8 @@ export default function QueryBuilderSidebar({
   onDeleteView,
   isLoadingViews = false,
   onWidthChange,
-  onResizing
+  onResizing,
+  onLibraryTabOpen
 }: QueryBuilderSidebarProps) {
   const [sidebarWidth, setSidebarWidth] = useState(DEFAULT_SIDEBAR_WIDTH)
   const [isResizing, setIsResizing] = useState(false)
@@ -157,6 +159,12 @@ export default function QueryBuilderSidebar({
   useEffect(() => {
     conditionsRef.current = conditions
   }, [conditions])
+
+  useEffect(() => {
+    if (activeTab === 'library') {
+      onLibraryTabOpen?.()
+    }
+  }, [activeTab, onLibraryTabOpen])
 
   const hasEmptyValues = conditions.some(c => !c.value.trim())
 

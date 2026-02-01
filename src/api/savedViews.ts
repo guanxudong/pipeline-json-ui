@@ -36,6 +36,7 @@ function generateId(): string {
 
 export async function getSavedViews(): Promise<SavedViewResponse[]> {
   if (USE_MOCK) {
+    await new Promise(resolve => setTimeout(resolve, 800))
     return mockStorage.views.map(toSavedViewResponse)
   }
 

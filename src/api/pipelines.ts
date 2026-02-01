@@ -39,6 +39,7 @@ function filterMockPipelines(query: PipelineQuery): Pipeline[] {
 
 export async function getPipelines(query: PipelineQuery = {}): Promise<Pipeline[]> {
   if (USE_MOCK) {
+    await new Promise(resolve => setTimeout(resolve, 1500))
     return filterMockPipelines(query)
   }
 

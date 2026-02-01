@@ -32,7 +32,18 @@ export default function Pipelines() {
   const [savedViews, setSavedViews] = useState<SavedViewResponse[]>([])
   const [isLoadingViews, setIsLoadingViews] = useState(false)
 
-  void loading
+  const fetchSavedViews = useCallback(async () => {
+    setIsLoadingViews(true)
+    try {
+      const views = await getSavedViews()
+      setSavedViews(views)
+    } catch (err) {
+      console.error('Failed to fetch saved views:', err)
+    } finally {
+      setIsLoadingViews(false)
+    }
+  }, [])
+
   void error
 
   const fetchData = useCallback(async (query: PipelineQuery = {}) => {
@@ -54,20 +65,8 @@ export default function Pipelines() {
   }, [fetchData])
 
   useEffect(() => {
-    const fetchSavedViews = async () => {
-      setIsLoadingViews(true)
-      try {
-        const views = await getSavedViews()
-        setSavedViews(views)
-      } catch (err) {
-        console.error('Failed to fetch saved views:', err)
-      } finally {
-        setIsLoadingViews(false)
-      }
-    }
-
     fetchSavedViews()
-  }, [])
+  }, [fetchSavedViews])
 
   const handleSaveView = useCallback(async (name: string, conditions: FilterCondition[]) => {
     try {
@@ -154,6 +153,7 @@ export default function Pipelines() {
       onSaveView={handleSaveView}
       onDeleteView={handleDeleteView}
       isLoadingViews={isLoadingViews}
+      onLibraryTabOpen={fetchSavedViews}
     >
       <ActiveFilterBar 
         conditions={activeConditions} 
@@ -165,6 +165,7 @@ export default function Pipelines() {
             data={paginatedData} 
             onViewJson={handleViewJson}
             columns={PIPELINE_COLUMNS}
+            loading={loading}
           />
           <Pagination
             totalItems={data.length}

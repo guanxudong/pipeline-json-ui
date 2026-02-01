@@ -12,6 +12,7 @@ interface LayoutProps {
   onSaveView?: (name: string, conditions: FilterCondition[]) => void
   onDeleteView?: (viewId: string) => void
   isLoadingViews?: boolean
+  onLibraryTabOpen?: () => void
 }
 
 const DEFAULT_SIDEBAR_WIDTH = 256
@@ -24,7 +25,8 @@ export default function Layout({
   savedViews = [],
   onSaveView,
   onDeleteView,
-  isLoadingViews = false
+  isLoadingViews = false,
+  onLibraryTabOpen
 }: LayoutProps) {
   const [rightSidebarOpen, setRightSidebarOpen] = useState(true)
   const [sidebarWidth, setSidebarWidth] = useState(DEFAULT_SIDEBAR_WIDTH)
@@ -133,6 +135,7 @@ export default function Layout({
         isLoadingViews={isLoadingViews}
         onWidthChange={handleSidebarWidthChange}
         onResizing={handleResizing}
+        onLibraryTabOpen={onLibraryTabOpen}
       />
     </div>
   )

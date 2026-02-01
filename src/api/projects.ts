@@ -31,6 +31,7 @@ function filterMockProjects(query: ProjectQuery): Project[] {
 
 export async function getProjects(query: ProjectQuery = {}): Promise<Project[]> {
   if (USE_MOCK) {
+    await new Promise(resolve => setTimeout(resolve, 1500))
     return filterMockProjects(query)
   }
 
