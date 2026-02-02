@@ -1,24 +1,21 @@
-___________________________________________________________________________________________
-| ⚡ Pipeline Logs  [Pipelines] [Projects]        [🕒 Last 30 Days ▾] [📥] [ Search >> ] |
-|_________________________________________________________________________________________|
-| ID       PROJECT             TIMESTAMP            STATUS      ATTRS    | | QUERY BUILDER |
-|------------------------------------------------------------------------| | [ Builder ]   |
-| pipe-001 Data Ingestion      Jan 24, 06:30 PM    [SUCCESS]     </>     | |               |
-| pipe-002 ML Model Training   Jan 24, 07:15 PM    [RUNNING]     </>     | | QUICK START   |
 
-
-
-___________________________________________________________________________________________
-| ⚡ Pipeline Logs  [Pipelines] [Projects]                             [ Search >> ]      |
-|________________________________________________________________________   _______________|
-|                                                                        | | QUERY BUILDER |
-| ID       PROJECT             TIMESTAMP            STATUS      ATTRS    | | [ Builder ] [L]|
-|------------------------------------------------------------------------| |               |
-| pipe-001 Data Ingestion      Jan 24, 06:30 PM    [SUCCESS]     </>     | | RANGE: [ 1M ▾]|
-| pipe-002 ML Model Training   Jan 24, 07:15 PM    [RUNNING]     </>     | |               |
-| pipe-003 ETL Daily Job       Jan 24, 08:00 PM    [ FAILED ]    </>     | | QUICK START   |
-| ...                                                                    | |               |
-|________________________________________________________________________| |               |
-|                                                                        | | v SQL PREVIEW |
-|  Rows per page: [ 10 ▾ ]   1 - 10 of 12    < [ 1 ] [ 2 ] >             | | [📥] [Apply Q]|
-|________________________________________________________________________| |_______________|
+__________________________________________________________________________________________
+|  ⚡ Pipeline Logs   [ Pipelines ] [ Projects ]              [ SEARCH 🔍 ] [ User Profile] |
+|__________________________________________________________________________________________|
+|                                                                        |                 |
+| ID       PROJECT             TIMESTAMP            STATUS      ATTRS    |  QUERY BUILDER  |
+|------------------------------------------------------------------------|  [ Builder ] [L]|
+| pipe-001 Data Ingestion      Jan 24, 06:30 PM    [SUCCESS]     </>     |  _______________|
+| pipe-002 ML Model Training   Jan 24, 07:15 PM    [RUNNING]     </>     | | 🕒 Range: ▾   ||
+| pipe-003 ETL Daily Job       Jan 24, 08:00 PM    [ FAILED ]    </>     | | [ Last 30D ]  ||
+| pipe-004 Report Gen          Jan 24, 08:30 PM    [SUCCESS]     </>     | |_______________||
+| pipe-005 Data Validation     Jan 24, 09:00 PM    [PENDING]     </>     |                 |
+| pipe-006 Archive Cleanup     Jan 24, 09:30 PM    [SUCCESS]     </>     |  QUICK START    |
+| pipe-007 API Sync            Jan 24, 10:00 PM    [ FAILED ]    </>     |  [+ Failed ]    |
+| pipe-008 Image Processing    Jan 24, 10:30 PM    [RUNNING]     </>     |  [+ > 5min ]    |
+| pipe-009 Database Backup     Jan 24, 11:00 PM    [SUCCESS]     </>     |                 |
+| pipe-010 Notification Svc    Jan 24, 11:30 PM    [PENDING]     </>     |  [+ Add Cond]   |
+|________________________________________________________________________|                 |
+|                                                                        |  v SQL PREVIEW  |
+|  Rows per page: [ 10 ▾ ]   1 - 10 of 12   < [1] [2] >  [ 📥 Download ] |  [Apply Query]  |
+|________________________________________________________________________|_________________|
